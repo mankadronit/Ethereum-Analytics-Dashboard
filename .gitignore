@@ -1,0 +1,15 @@
+/target/*
+/checkpoint/*
+/data/*
+/project/*
+
+target
+project
+data
+checkpoint
+
+.bsp
+.idea
+.metals
+.vscode
+.DS_Store

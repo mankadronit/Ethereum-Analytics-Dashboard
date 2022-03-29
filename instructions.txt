@@ -1,0 +1,17 @@
+ sbt package
+
+ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.1.1 --class TransactionsProducer target/scala-2.12/ethereumanalytics_2.12-1.0.jar --master local
+
+
+ docker compose exec kafka bash
+
+ ./kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic eth_transactions
+
+
+
+Things to do:
+
+1. Create a non-spark scala program to write 1000 records every 2 seconds using just the kafka api
+
+2. Use spark-streaming to read from the kafka topic and save the processed data to mysql
+
