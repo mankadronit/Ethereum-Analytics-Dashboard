@@ -8,17 +8,21 @@ val kafkaVersion = "3.1.0"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.2.11" % "test",
-  "org.apache.spark" %% "spark-core" % "3.1.1" % "provided",
-  "org.apache.spark" %% "spark-streaming" % "3.1.1" % "provided",
-  "org.apache.spark" %% "spark-sql" % "3.1.1" % "provided",
-  "org.apache.kafka" %% "kafka" % "3.0.1",
-  "org.apache.kafka" % "kafka-clients" % "3.0.1",
-  "org.apache.kafka" % "kafka-streams" % "3.0.1",
-  "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.1.1" ,
-  "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.1.1" % Test
+  "org.apache.spark" %% "spark-core" % "3.2.1" % "provided",
+  "org.apache.spark" %% "spark-streaming" % "3.2.1" % "provided",
+  "org.apache.spark" %% "spark-sql" % "3.2.1" % "provided",
+  "org.apache.kafka" %% "kafka" % "3.1.0",
+  "org.apache.kafka" % "kafka-clients" % "3.1.0",
+  "org.apache.kafka" % "kafka-streams" % "3.1.0",
+  "org.apache.spark" %% "spark-streaming-kafka-0-10" % "3.2.1" ,
+  "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.2.1" % Test,
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.2.2",
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.13.2",
+  "mysql" % "mysql-connector-java" % "8.0.28"
+
 )
 
-//
+
 ThisBuild / assemblyMergeStrategy  := {
   case PathList(ps @ _*) if ps.last endsWith "module-info.class" => MergeStrategy.first
   case x if x.contains("io.netty.versions.properties") => MergeStrategy.discard

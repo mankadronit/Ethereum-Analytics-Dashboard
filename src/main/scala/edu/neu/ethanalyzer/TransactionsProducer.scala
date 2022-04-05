@@ -1,11 +1,12 @@
+package edu.neu.ethanalyzer
+
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.functions.{col, from_json}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{SQLContext, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType, TimestampType}
 
 
 
-object TransactionsConsumer {
+object TransactionsProducer {
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession
       .builder()
@@ -13,6 +14,8 @@ object TransactionsConsumer {
       .master("local[*]")
       .getOrCreate()
 
+    val spc: SparkContext = spark.sparkContext
+    val sc: SQLContext= spark.sqlContext
     spark.sparkContext.setLogLevel("ERROR")
 
 
@@ -36,24 +39,15 @@ object TransactionsConsumer {
       StructField("block_hash", StringType, nullable = false)
     ))
 
-    val data = spark
-      .readStream
+    val data = spark.read.schema(schema).csv("data/eth_transactions.csv")
+
+    val query = data.selectExpr("CAST(hash AS STRING) AS key", "to_json(struct(*)) AS value").write
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("subscribe", "eth_transactions")
-      .load()
-      .select(col("value").cast(StringType).as("col"))
-      .select(from_json(col("col"), schema).alias("transaction"))
+      .option("topic", "eth_transactions")
+      .option("checkpointLocation", "checkpoint")
+      .save()
 
-    data.printSchema()
-
-    val query1 = data
-      .select("transaction.*")
-      .writeStream
-      .format("console")
-      .start()
-
-    query1.awaitTermination()
     spark.stop()
   }
 

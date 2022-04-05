@@ -13,3 +13,4 @@ checkpoint
 .metals
 .vscode
 .DS_Store
+.mysql-data

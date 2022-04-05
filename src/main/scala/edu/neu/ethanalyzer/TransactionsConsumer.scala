@@ -1,10 +1,14 @@
-import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, SparkSession}
+package edu.neu.ethanalyzer
+
+import org.apache.spark.sql.functions.{col, from_json}
+import org.apache.spark.sql.streaming.Trigger
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType, TimestampType}
 
 
 
-object TransactionsProducer {
+object TransactionsConsumer {
+
   def main(args: Array[String]): Unit = {
     val spark: SparkSession = SparkSession
       .builder()
@@ -12,8 +16,6 @@ object TransactionsProducer {
       .master("local[*]")
       .getOrCreate()
 
-    val spc: SparkContext = spark.sparkContext
-    val sc: SQLContext= spark.sqlContext
     spark.sparkContext.setLogLevel("ERROR")
 
 
@@ -37,15 +39,46 @@ object TransactionsProducer {
       StructField("block_hash", StringType, nullable = false)
     ))
 
-    val data = spark.read.schema(schema).csv("./data/eth-transactions*.csv")
-
-    val query = data.selectExpr("CAST(hash AS STRING) AS key", "to_json(struct(*)) AS value").write
+    val data = spark
+      .readStream
       .format("kafka")
       .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("topic", "eth_transactions")
-      .option("checkpointLocation", "checkpoint")
-      .save()
+      .option("subscribe", "eth_transactions")
+      .load()
+      .select(col("value").cast(StringType).as("col"))
+      .select(from_json(col("col"), schema).alias("transaction"))
 
+    data.printSchema()
+
+
+    val jdbcHostname = "localhost"
+    val jdbcPort = 3306
+    val jdbcDatabase = "crypto_db"
+
+    // Create the JDBC URL without passing in the user and password parameters.
+    val jdbcUrl = s"jdbc:mysql://${jdbcHostname}:${jdbcPort}/${jdbcDatabase}"
+
+    // Create a Properties() object to hold the parameters.
+    import java.util.Properties
+    val connectionProperties = new Properties()
+
+    connectionProperties.put("user", "root")
+    connectionProperties.put("password", "csye7200")
+
+    val driverClass = "com.mysql.jdbc.Driver"
+    connectionProperties.setProperty("Driver", driverClass)
+
+    val query1 = data
+      .select("transaction.*")
+      .writeStream
+      .trigger(Trigger.ProcessingTime(5000))
+      .foreachBatch({ (batchDF: Dataset[Row], _: Long) =>
+        batchDF.write.mode("append")
+          .jdbc(jdbcUrl, "transactions", connectionProperties)
+      })
+      .start()
+
+    query1.awaitTermination()
     spark.stop()
   }
 
