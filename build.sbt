@@ -18,10 +18,9 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql-kafka-0-10" % "3.2.1" % Test,
   "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.2.2",
   "com.fasterxml.jackson.core" % "jackson-core" % "2.13.2",
-  "mysql" % "mysql-connector-java" % "8.0.28"
-
+  "mysql" % "mysql-connector-java" % "8.0.28",
+  "org.apache.httpcomponents" % "httpclient" % "4.5.13"
 )
-
 
 ThisBuild / assemblyMergeStrategy  := {
   case PathList(ps @ _*) if ps.last endsWith "module-info.class" => MergeStrategy.first

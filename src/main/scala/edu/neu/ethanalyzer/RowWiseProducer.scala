@@ -1,13 +1,25 @@
 package edu.neu.ethanalyzer
 
+import java.util.Properties
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.sql.{Dataset, Row, SQLContext, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType, TimestampType}
 
+object RowWiseProducer {
 
-
-object TransactionsProducer {
   def main(args: Array[String]): Unit = {
+    val props = new Properties()
+    props.put("bootstrap.servers","localhost:9092")
+    props.put("key.serializer",
+      "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer",
+      "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("acks","all")
+
+    val topic = "eth_transactions"
+    val producer = new KafkaProducer[String, String](props)
+
     val spark: SparkSession = SparkSession
       .builder()
       .appName("EthereumAnalytics")
@@ -39,19 +51,26 @@ object TransactionsProducer {
       StructField("block_hash", StringType, nullable = false)
     ))
 
-    val data = spark.read.schema(schema).csv("data/transactions/eth_transactions.csv")
+    val data = spark.read.schema(schema).csv("data/transactions/*.csv")
 
-    val query = data.selectExpr("CAST(hash AS STRING) AS key", "to_json(struct(*)) AS value").write
-      .format("kafka")
-      .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("topic", "eth_transactions")
-      .option("checkpointLocation", "checkpoint")
-      .save()
+    val query = data.selectExpr("CAST(hash AS STRING) AS key", "to_json(struct(*)) AS value").collect()
 
+    var count = 0
 
+    for (row <- query) {
+      val key = row.get(0).toString
 
-    //query.awaitTermination()
-    spark.stop()
+      val value = row.get(1).toString
+
+      val record = new ProducerRecord[String, String](topic, key, value)
+      val metadata = producer.send(record)
+
+      println(value)
+
+      count = count + 1
+
+      if (count % 50 == 0) {println("Sleeping for 5 seconds"); Thread.sleep(5000)}
+    }
+
   }
-
 }

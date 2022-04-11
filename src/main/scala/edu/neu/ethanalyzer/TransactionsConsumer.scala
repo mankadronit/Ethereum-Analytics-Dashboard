@@ -1,8 +1,9 @@
 package edu.neu.ethanalyzer
 
-import org.apache.spark.sql.functions.{col, from_json}
+
+import org.apache.spark.sql.functions.{col, from_csv, from_json}
 import org.apache.spark.sql.streaming.Trigger
-import org.apache.spark.sql.{DataFrame, Dataset, Row, SaveMode, SparkSession}
+import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.apache.spark.sql.types.{DoubleType, IntegerType, StringType, StructField, StructType, TimestampType}
 
 
@@ -17,7 +18,6 @@ object TransactionsConsumer {
       .getOrCreate()
 
     spark.sparkContext.setLogLevel("ERROR")
-
 
     val schema = StructType(Array(
       StructField("hash", StringType, nullable = false),
@@ -39,6 +39,7 @@ object TransactionsConsumer {
       StructField("block_hash", StringType, nullable = false)
     ))
 
+
     val data = spark
       .readStream
       .format("kafka")
@@ -49,7 +50,6 @@ object TransactionsConsumer {
       .select(from_json(col("col"), schema).alias("transaction"))
 
     data.printSchema()
-
 
     val jdbcHostname = "localhost"
     val jdbcPort = 3306
@@ -71,15 +71,14 @@ object TransactionsConsumer {
     val query1 = data
       .select("transaction.*")
       .writeStream
-      .trigger(Trigger.ProcessingTime(5000))
-      .foreachBatch({ (batchDF: Dataset[Row], _: Long) =>
+      .trigger(Trigger.ProcessingTime(2000))
+      .foreachBatch({ (batchDF: Dataset[Row], _: Long) => {
         batchDF.write.mode("append")
           .jdbc(jdbcUrl, "transactions", connectionProperties)
-      })
+      }})
       .start()
 
     query1.awaitTermination()
     spark.stop()
   }
-
 }
