@@ -49,7 +49,10 @@ Things to do:
 
 //
 
- spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.TransactionsProducer" ./target/scala-2.12/ethereumanalytics_2.12-1.0.jar
+ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.TransactionsProducer" ./target/scala-2.12/EthereumAnalytics-assembly-1.0.jar
 
  //
-spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.TransactionsConsumer" ./target/scala-2.12/ethereumanalytics_2.12-1.0.jar
+spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.TransactionsConsumer" ./target/scala-2.12/EthereumAnalytics-assembly-1.0.jar
+
+//
+ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.RowWiseProducer" ./target/scala-2.12/EthereumAnalytics-assembly-1.0.jar
