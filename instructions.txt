@@ -56,3 +56,6 @@ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --maste
 
 //
  spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.1 --master localhost --class "edu.neu.ethanalyzer.RowWiseProducer" ./target/scala-2.12/EthereumAnalytics-assembly-1.0.jar
+
+//
+docker exec -it superset superset-init
