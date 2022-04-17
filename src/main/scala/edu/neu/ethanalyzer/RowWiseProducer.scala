@@ -5,8 +5,20 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.spark.SparkContext
 import org.apache.spark.sql.{Row, SQLContext, SparkSession}
 import Schemas.{blocks_schema, transactions_schema}
+import scala.concurrent.{Await,Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
+
+
 
 object RowWiseProducer {
+
+  def parallel[A, B](taskA: =>A, taskB: =>B): (A,B) = {
+    val fB:Future[B] = Future { taskB }
+    val a:A = taskA
+    val b:B = Await.result(fB, Duration.Inf)
+    (a,b)
+  }
 
   def write_to_topic(data: Array[Row], topic: String): Unit = {
     val props = new Properties()
@@ -56,8 +68,10 @@ object RowWiseProducer {
     val blocks_query = blocks_data.selectExpr("CAST(hash AS STRING) AS key", "to_json(struct(*)) AS value").collect()
 
 
-    write_to_topic(trans_query, "eth_transactions")
-    write_to_topic(blocks_query, "eth_blocks")
+    parallel(
+      write_to_topic(trans_query, "eth_transactions"),
+      write_to_topic(blocks_query, "eth_blocks")
+    )
 
   }
 }

@@ -1,10 +1,13 @@
 /target/*
 /checkpoint/*
 /data/*
-/project/*
+/project/project
+/project/target
+/project/project/*
+/project/target/*
+/project/build.properties
 
 target
-project
 data
 checkpoint
 

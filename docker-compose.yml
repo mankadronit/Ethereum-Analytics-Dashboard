@@ -18,7 +18,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   superset:
     image: amancevice/superset
-    command: superset-init
     restart: always
     ports:
       - "8088:8088"
