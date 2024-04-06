@@ -45,8 +45,8 @@ The data was downloaded and stored locally as csv files.
 
 ### Block Metrics Dashboard
 
-![block_metrics_dashboard](/images/block_metrics_dashboard.png)
+![block_metrics_dashboard](block_metrics_dashboard.png)
 
 ### Average Ether Cost Per Transaction 
 
-![transaction_dashboard](/images/transaction_dashboard.png)
+![transaction_dashboard](transaction_dashboard.png)
